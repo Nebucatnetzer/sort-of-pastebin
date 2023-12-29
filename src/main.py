@@ -11,7 +11,6 @@ from .utils import strtobool
 
 
 NO_SSL = bool(strtobool(os.environ.get("NO_SSL", "False")))
-URL_PREFIX = os.environ.get("URL_PREFIX", None)
 HOST_OVERRIDE = os.environ.get("HOST_OVERRIDE", None)
 TOKEN_SEPARATOR = "~"
 
