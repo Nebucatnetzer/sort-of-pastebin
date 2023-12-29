@@ -1,0 +1,65 @@
+* sort-of-pastebin
+
+A little project in Flask to store inputs encrypted and delete once someone looks at it.
+
+** Origin
+
+This project was inspired by Snappass and was previously licensed under MIT.
+
+- https://github.com/pinterest/snappass
+
+** Tests
+
+#+name: mycontent
+#+begin_src restclient
+POST http://localhost:8000
+Accept: application/json
+Content-Type: application/json
+
+{
+"ttl": 604800,
+"password": "Foo"
+}
+#+end_src
+
+#+RESULTS: mycontent
+#+BEGIN_SRC js
+{
+  "key": "snappass448b8e2a34174c20a2e636f14e99f836~c85WYn1KjFtqpTVqYifHuQxvjhBTp0gF0W3fk4Z1oXc="
+}
+
+// POST http://localhost:8000
+// HTTP/1.1 200 OK
+// Server: gunicorn
+// Date: Fri, 29 Dec 2023 17:12:27 GMT
+// Connection: close
+// Content-Type: application/json
+// Content-Length: 101
+// Request duration: 0.093294s
+#+END_SRC
+
+#+begin_src restclient
+POST http://localhost:8000/get-secret
+Accept: application/json
+Content-Type: application/json
+
+{
+"key": "snappass448b8e2a34174c20a2e636f14e99f836~c85WYn1KjFtqpTVqYifHuQxvjhBTp0gF0W3fk4Z1oXc="
+}
+#+end_src
+
+#+RESULTS:
+#+BEGIN_SRC js
+{
+  "password": "Foo"
+}
+
+// POST http://localhost:8000/get-secret
+// HTTP/1.1 200 OK
+// Server: gunicorn
+// Date: Fri, 29 Dec 2023 17:12:36 GMT
+// Connection: close
+// Content-Type: application/json
+// Content-Length: 24
+// Request duration: 0.052981s
+#+END_SRC
