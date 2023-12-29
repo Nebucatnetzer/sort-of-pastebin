@@ -131,6 +131,20 @@ def empty(value):
         return True
 
 
+def _clean_ttl(request):
+    if not request.form.get("ttl"):
+        return 604800
+
+    try:
+        time_period = int(request.form.get("ttl"))
+    except ValueError:
+        abort(400, "TTL must be an integer")
+
+    if time_period > 2419200:
+        abort(400, "TTL must be less than 2419200 seconds (4 weeks)")
+    return time_period
+
+
 def clean_input():
     """
     Make sure we're not getting bad data from the front end,
@@ -139,20 +153,8 @@ def clean_input():
     if empty(request.form.get("password", "")):
         abort(400)
 
-    if not request.form.get("ttl"):
-        time_period = 604800
-
-    if request.form.get("ttl"):
-        if request.form.get("ttl").isdigit():
-            time_period = int(request.form.get("ttl"))
-        else:
-            abort(400, "TTL must be an integer")
-
-    if time_period > 2419200:
-        abort(400, "TTL must be less than 2419200 seconds (4 weeks)")
-
-    if request.form["password"]:
-        return time_period, request.form["password"]
+    time_period = _clean_ttl(request)
+    return time_period, request.form["password"]
 
 
 @app.route("/", methods=["POST"])
