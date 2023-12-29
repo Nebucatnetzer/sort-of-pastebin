@@ -252,3 +252,4 @@ result
 result-*
 
 /.direnv/
+/.devenv/

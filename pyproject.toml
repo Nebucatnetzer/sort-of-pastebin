@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "snapbin"
+version = "0.1.0"
+description = "A little service to store and encrypt information, deleting it once it's retrieved."
+authors = ["Andreas Zweili <andreas@zweili.ch>"]
+license = "GPL3.0+"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+cryptography = "^41.0.7"
+gunicorn = "^21.2.0"
+redis = "^5.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+python-lsp-server = "^1.9.0"
+pytest = "^7.4.3"
+pytest-cov = "^4.1.0"
+mypy = "^1.8.0"
+pylint = "^3.0.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
