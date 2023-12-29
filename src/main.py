@@ -1,13 +1,11 @@
 import os
 import sys
 import uuid
-from urllib.parse import quote_plus
-from urllib.parse import unquote_plus
 
 import redis
 
 from cryptography.fernet import Fernet
-from flask import abort, Flask, render_template, request, jsonify
+from flask import abort, Flask, request, jsonify
 from redis.exceptions import ConnectionError as RedisConnectionError
 from .utils import strtobool
 
@@ -39,8 +37,6 @@ else:
     redis_client = redis.StrictRedis(
         host=redis_host, port=redis_port, db=redis_db)
 REDIS_PREFIX = os.environ.get('REDIS_PREFIX', 'snappass')
-
-TIME_CONVERSION = {'three days': 259200, 'day': 86400, 'hour': 3600}
 
 
 def check_redis_alive(fn):
@@ -145,19 +141,14 @@ def clean_input():
     if empty(request.form.get('password', '')):
         abort(400)
 
-    if empty(request.form.get('ttl', '')):
-        abort(400)
+    if empty(request.form.get('ttl', None)):
+        request.form.set('ttl', 604800)
 
-    time_period = request.form['ttl'].lower()
-    if time_period not in TIME_CONVERSION:
-        abort(400)
+    if request.form.get('ttl') > 2419200:
+        abort(400, 'TTL must be less than 2419200 seconds (4 weeks)')
 
-    return TIME_CONVERSION[time_period], request.form['password']
-
-
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('set_password.html', number_of_keys=len(redis_client.keys("*")))
+    if request.form['password']:
+        return request.form['ttl'], request.form['password']
 
 
 @app.route('/', methods=['POST'])
@@ -166,43 +157,20 @@ def handle_password():
         request.form = request.get_json()
     ttl, password = clean_input()
     token = set_password(password, ttl)
-
-    if NO_SSL:
-        if HOST_OVERRIDE:
-            base_url = f'http://{HOST_OVERRIDE}/'
-        else:
-            base_url = request.url_root
-    else:
-        if HOST_OVERRIDE:
-            base_url = f'https://{HOST_OVERRIDE}/'
-        else:
-            base_url = request.url_root.replace("http://", "https://")
-    if URL_PREFIX:
-        base_url = base_url + URL_PREFIX.strip("/") + "/"
-    link = base_url + quote_plus(token)
-    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
-        return jsonify(link=link, ttl=ttl)
-    else:
-        return render_template('confirm.html', password_link=link)
+    return jsonify(key=token)
 
 
-@app.route('/<password_key>', methods=['GET'])
-def preview_password(password_key):
-    password_key = unquote_plus(password_key)
-    if not password_exists(password_key):
-        return render_template('expired.html'), 404
-
-    return render_template('preview.html')
-
-
-@app.route('/<password_key>', methods=['POST'])
-def show_password(password_key):
-    password_key = unquote_plus(password_key)
+@app.route('/get-secret', methods=['POST'])
+def show_password():
+    if request.is_json:
+        request.form = request.get_json()
+    if empty(request.form.get('key', '')):
+        abort(400)
+    password_key = request.form['key']
     password = get_password(password_key)
     if not password:
-        return render_template('expired.html'), 404
-
-    return render_template('password.html', password=password)
+        return abort(404)
+    return jsonify(password=password)
 
 
 @check_redis_alive
