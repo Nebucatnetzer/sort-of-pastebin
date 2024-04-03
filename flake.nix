@@ -49,7 +49,6 @@
                     install.enable = true;
                   };
                 };
-                process.implementation = "process-compose";
                 process-managers.process-compose.enable = true;
                 processes = {
                   webserver = {
