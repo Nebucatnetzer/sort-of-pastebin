@@ -2,6 +2,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     devenv.url = "github:cachix/devenv";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -9,6 +13,7 @@
       self,
       nixpkgs,
       devenv,
+      poetry2nix,
     }@inputs:
     let
       systems = [
@@ -28,6 +33,11 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           config = self.devShells.${system}.default.config;
+          env = mkPoetryEnv {
+            projectDir = ./.;
+            python = pkgs.python312;
+          };
+          inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryEnv;
         in
         {
           default = devenv.lib.mkShell {
@@ -40,15 +50,7 @@
                 enterShell = ''
                   ln -sf ${config.process-managers.process-compose.configFile} ${config.env.DEVENV_ROOT}/process-compose.yml
                 '';
-                languages.python = {
-                  enable = true;
-                  package = pkgs.python312;
-                  poetry = {
-                    activate.enable = true;
-                    enable = true;
-                    install.enable = true;
-                  };
-                };
+                packages = [ env ];
                 process-managers.process-compose.enable = true;
                 processes = {
                   webserver = {
