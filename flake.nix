@@ -34,9 +34,6 @@
               modules = [{
                 env = {
                   NO_SSL = "True";
-                  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-                    pkgs.stdenv.cc.cc
-                  ];
                 };
                 languages.python = {
                   enable = true;
