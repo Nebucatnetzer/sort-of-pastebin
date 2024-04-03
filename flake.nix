@@ -38,6 +38,11 @@
             python = pkgs.python312;
           };
           inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryEnv;
+          tests = pkgs.writeShellScriptBin "python-test" ''
+            trap "process-compose down &> /dev/null" EXIT
+            process-compose up --tui=false &
+            pytest --cov=src tests.py
+          '';
         in
         {
           default = devenv.lib.mkShell {
@@ -46,11 +51,15 @@
               {
                 env = {
                   NO_SSL = "True";
+                  PC_PORT_NUM = "9999";
                 };
                 enterShell = ''
                   ln -sf ${config.process-managers.process-compose.configFile} ${config.env.DEVENV_ROOT}/process-compose.yml
                 '';
-                packages = [ env ];
+                packages = [
+                  env
+                  tests
+                ];
                 process-managers.process-compose.enable = true;
                 processes = {
                   webserver = {
@@ -58,9 +67,6 @@
                     exec = "gunicorn src.main:app";
                   };
                 };
-                scripts.tests.exec = ''
-                  pytest --cov=src tests.py
-                '';
                 services.redis.enable = true;
               }
             ];
