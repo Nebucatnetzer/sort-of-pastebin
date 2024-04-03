@@ -1,0 +1,17 @@
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v26
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Tests
+        run: nix develop --impure --command "python-test"
