@@ -23,18 +23,23 @@
       packages = forEachSystem (system: {
         devenv-up = self.devShells.${system}.default.config.procfileScript;
       });
-      devShells = forEachSystem
-        (system:
-          let
-            pkgs = nixpkgs.legacyPackages.${system};
-          in
-          {
-            default = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [{
+      devShells = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          config = self.devShells.${system}.default.config;
+        in
+        {
+          default = devenv.lib.mkShell {
+            inherit inputs pkgs;
+            modules = [
+              {
                 env = {
                   NO_SSL = "True";
                 };
+                enterShell = ''
+                  ln -sf ${config.process-managers.process-compose.configFile} ${config.env.DEVENV_ROOT}/process-compose.yml
+                '';
                 languages.python = {
                   enable = true;
                   package = pkgs.python312;
@@ -56,8 +61,10 @@
                   pytest --cov=src tests.py
                 '';
                 services.redis.enable = true;
-              }];
-            };
-          });
+              }
+            ];
+          };
+        }
+      );
     };
 }
