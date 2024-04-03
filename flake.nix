@@ -1,13 +1,23 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    systems.url = "github:nix-systems/default";
     devenv.url = "github:cachix/devenv";
   };
 
-  outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      devenv,
+    }@inputs:
     let
-      forEachSystem = nixpkgs.lib.genAttrs (import systems);
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
+      ];
+      forEachSystem = nixpkgs.lib.genAttrs systems;
     in
     {
       packages = forEachSystem (system: {
