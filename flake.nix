@@ -24,9 +24,6 @@
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
       in
       {
-        packages = {
-          devenv-up = self.devShells.${system}.default.config.procfileScript;
-        };
         devShells =
           let
             config = self.devShells.${system}.default.config;
