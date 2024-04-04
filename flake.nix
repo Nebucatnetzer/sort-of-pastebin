@@ -22,20 +22,20 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
+        env = poetry2nix.mkPoetryEnv {
+          projectDir = ./.;
+          python = pkgs.python312;
+        };
+        tests = pkgs.writeShellScriptBin "python-test" ''
+          trap "process-compose down &> /dev/null" EXIT
+          process-compose up --tui=false &
+          pytest --cov=src tests.py
+        '';
       in
       {
         devShells =
           let
             config = self.devShells.${system}.default.config;
-            env = poetry2nix.mkPoetryEnv {
-              projectDir = ./.;
-              python = pkgs.python312;
-            };
-            tests = pkgs.writeShellScriptBin "python-test" ''
-              trap "process-compose down &> /dev/null" EXIT
-              process-compose up --tui=false &
-              pytest --cov=src tests.py
-            '';
           in
           {
             default = devenv.lib.mkShell {
