@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A little service to store and encrypt information, deleting it once it's retrieved."
 authors = ["Andreas Zweili <andreas@zweili.ch>"]
 license = "GPL3.0+"
-readme = "README.md"
+readme = "README.org"
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
