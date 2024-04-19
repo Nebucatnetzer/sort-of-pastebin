@@ -22,7 +22,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
-        env = poetry2nix.mkPoetryEnv {
+        application = poetry2nix.mkPoetryApplication {
           projectDir = ./.;
           python = pkgs.python312;
         };
@@ -33,6 +33,23 @@
         '';
       in
       {
+        packages = {
+          snapbin-image = pkgs.dockerTools.buildImage {
+            name = "snapbin";
+            tag = "latest";
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [ application.dependencyEnv ];
+            };
+            config = {
+              Cmd = [
+                "${application.dependencyEnv}/bin/gunicorn"
+                "--bind=0.0.0.0"
+                "snapbin.main:app"
+              ];
+            };
+          };
+        };
         devShells =
           let
             config = self.devShells.${system}.default.config;
