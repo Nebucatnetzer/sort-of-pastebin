@@ -1,0 +1,7 @@
+services:
+  app:
+    image: snapbin
+    ports:
+      - "8000:8000"
+  redis:
+    image: redis
