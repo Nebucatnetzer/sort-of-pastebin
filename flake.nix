@@ -29,7 +29,7 @@
         tests = pkgs.writeShellScriptBin "python-test" ''
           trap "process-compose down &> /dev/null" EXIT
           process-compose up --tui=false &
-          pytest --cov=src tests.py
+          pytest --cov=snapbin tests.py
         '';
       in
       {
@@ -57,7 +57,7 @@
                   processes = {
                     webserver = {
                       process-compose.depends_on.redis.condition = "process_started";
-                      exec = "gunicorn src.main:app";
+                      exec = "gunicorn snapbin.main:app";
                     };
                   };
                   services.redis.enable = true;
