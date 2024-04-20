@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from werkzeug.exceptions import BadRequest
 
 # noinspection PyPep8Naming
-import src.main as snapbin
+import snapbin.main as snapbin
 
 
 def test_get_password():

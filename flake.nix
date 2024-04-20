@@ -22,23 +22,56 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
+        application = poetry2nix.mkPoetryApplication {
+          projectDir = ./.;
+          python = pkgs.python312;
+        };
+        env = poetry2nix.mkPoetryEnv {
+          projectDir = ./.;
+          python = pkgs.python312;
+          groups = [ "dev" ];
+          editablePackageSources = {
+            snapbin = ./snapbin;
+          };
+        };
+        tests = pkgs.writeShellScriptBin "python-test" ''
+          trap "process-compose down &> /dev/null" EXIT
+          process-compose up --tui=false &
+          pytest --cov=snapbin tests.py
+        '';
       in
       {
         packages = {
-          devenv-up = self.devShells.${system}.default.config.procfileScript;
+          snapbin-image = pkgs.dockerTools.buildImage {
+            name = "snapbin";
+            tag = "latest";
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [ application.dependencyEnv ];
+            };
+            config = {
+              Cmd = [
+                "${application.dependencyEnv}/bin/gunicorn"
+                "--bind=0.0.0.0"
+                "snapbin.main:app"
+              ];
+            };
+          };
+          redis-image = pkgs.dockerTools.buildImage {
+            name = "redis";
+            tag = "latest";
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [ pkgs.redis ];
+            };
+            config = {
+              Cmd = [ "${pkgs.redis}/bin/redis-server" ];
+            };
+          };
         };
         devShells =
           let
             config = self.devShells.${system}.default.config;
-            env = poetry2nix.mkPoetryEnv {
-              projectDir = ./.;
-              python = pkgs.python312;
-            };
-            tests = pkgs.writeShellScriptBin "python-test" ''
-              trap "process-compose down &> /dev/null" EXIT
-              process-compose up --tui=false &
-              pytest --cov=src tests.py
-            '';
           in
           {
             default = devenv.lib.mkShell {
@@ -60,7 +93,7 @@
                   processes = {
                     webserver = {
                       process-compose.depends_on.redis.condition = "process_started";
-                      exec = "gunicorn src.main:app";
+                      exec = "gunicorn snapbin.main:app";
                     };
                   };
                   services.redis.enable = true;

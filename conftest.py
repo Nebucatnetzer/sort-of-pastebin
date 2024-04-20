@@ -1,6 +1,6 @@
 import pytest
 
-import src.main as snapbin
+import snapbin.main as snapbin
 
 
 @pytest.fixture()

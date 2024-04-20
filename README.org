@@ -10,10 +10,15 @@ This project was inspired by Snappass and was previously licensed under MIT.
 
 ** Tests :verb:
 
-*** Store secret
-POST http://localhost:8000
+# To run this tests you need to have Emacs and the package [[https://github.com/federicotdn/verb][verb]] installed.
+# Then you can press the following key combination on the headings {C-c C-r C-r}.
+
+template http://localhost:8000
 Accept: application/json
 Content-Type: application/json
+
+*** Store secret
+POST /
 
 {
 "ttl": 604800,
@@ -21,10 +26,8 @@ Content-Type: application/json
 }
 
 *** Retrieve secret
-POST http://localhost:8000/get-secret
-Accept: application/json
-Content-Type: application/json
+POST /get-secret
 
 {
-"key": "snappass941ad23f9e4b4e7fa699854e48f83ff9~tQVYlz56h1bzXVlrCY5W8rYER1sXGtvYtRHrMyXLhSc="
+"key": "{{(verb-json-get (oref verb-last body) "key")}}"
 }
