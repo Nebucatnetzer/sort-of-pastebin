@@ -17,7 +17,7 @@ disable = [
 python = "^3.11"
 flask = "^3.0.0"
 cryptography = "^41.0.7"
-gunicorn = "^21.2.0"
+gunicorn = "^22.0.0"
 redis = "^5.0.1"
 
 
