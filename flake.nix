@@ -26,6 +26,14 @@
           projectDir = ./.;
           python = pkgs.python312;
         };
+        env = poetry2nix.mkPoetryEnv {
+          projectDir = ./.;
+          python = pkgs.python312;
+          groups = [ "dev" ];
+          editablePackageSources = {
+            snapbin = ./snapbin;
+          };
+        };
         tests = pkgs.writeShellScriptBin "python-test" ''
           trap "process-compose down &> /dev/null" EXIT
           process-compose up --tui=false &
