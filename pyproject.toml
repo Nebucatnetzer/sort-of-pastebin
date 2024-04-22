@@ -16,7 +16,7 @@ disable = [
 [tool.poetry.dependencies]
 python = "^3.11"
 flask = "^3.0.0"
-cryptography = "^41.0.7"
+cryptography = "^42.0.4"
 gunicorn = "^22.0.0"
 redis = "^5.0.1"
 

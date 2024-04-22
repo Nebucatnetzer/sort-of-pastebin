@@ -22,17 +22,33 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
+        python = pkgs.python312;
+        overrides = poetry2nix.defaultPoetryOverrides.extend (
+          self: super: {
+            cryptography = super.cryptography.overridePythonAttrs (old: rec {
+              cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
+                inherit (old) src;
+                name = "${old.pname}-${old.version}";
+                sourceRoot = "${old.pname}-${old.version}/${cargoRoot}";
+                sha256 = "sha256-qaXQiF1xZvv4sNIiR2cb5TfD7oNiYdvUwcm37nh2P2M=";
+              };
+              cargoRoot = "src/rust";
+            });
+          }
+        );
         application = poetry2nix.mkPoetryApplication {
           projectDir = ./.;
-          python = pkgs.python312;
+          inherit overrides;
+          inherit python;
         };
         env = poetry2nix.mkPoetryEnv {
           projectDir = ./.;
-          python = pkgs.python312;
           groups = [ "dev" ];
           editablePackageSources = {
             snapbin = ./snapbin;
           };
+          inherit overrides;
+          inherit python;
         };
         tests = pkgs.writeShellScriptBin "python-test" ''
           trap "process-compose down &> /dev/null" EXIT
