@@ -22,11 +22,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
-        application = poetry2nix.mkPoetryApplication {
-          projectDir = ./.;
-          python = pkgs.python312;
-          inherit overrides;
-        };
+        python = pkgs.python312;
         overrides = poetry2nix.defaultPoetryOverrides.extend (
           self: super: {
             cryptography = super.cryptography.overridePythonAttrs (old: rec {
@@ -40,14 +36,19 @@
             });
           }
         );
+        application = poetry2nix.mkPoetryApplication {
+          projectDir = ./.;
+          inherit overrides;
+          inherit python;
+        };
         env = poetry2nix.mkPoetryEnv {
           projectDir = ./.;
-          python = pkgs.python312;
           groups = [ "dev" ];
           editablePackageSources = {
             snapbin = ./snapbin;
           };
           inherit overrides;
+          inherit python;
         };
         tests = pkgs.writeShellScriptBin "python-test" ''
           trap "process-compose down &> /dev/null" EXIT
