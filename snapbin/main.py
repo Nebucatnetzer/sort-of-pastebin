@@ -20,7 +20,7 @@ app = Flask(__name__)
 if os.environ.get("DEBUG"):
     app.debug = True
 app.secret_key = os.environ.get("SECRET_KEY", "Secret Key")
-app.config.update(dict(STATIC_URL=os.environ.get("STATIC_URL", "static")))
+app.config.update({"STATIC_URL": os.environ.get("STATIC_URL", "static")})
 
 # Initialize Redis
 if os.environ.get("MOCK_REDIS"):
@@ -44,7 +44,7 @@ def check_redis_alive(fn):
                 redis_client.ping()
             return fn(*args, **kwargs)
         except RedisConnectionError as error:
-            print("Failed to connect to redis! %s" % error)
+            print(f"Failed to connect to redis! {error}")
             if fn.__name__ == "main":
                 sys.exit(0)
             else:
@@ -116,27 +116,28 @@ def get_password(token):
     if password is not None:
         if decryption_key is not None:
             password = decrypt(password, decryption_key)
-
         return password.decode("utf-8")
+    return None
 
 
 @check_redis_alive
 def password_exists(token):
-    storage_key, decryption_key = parse_token(token)
+    storage_key, _ = parse_token(token)
     return redis_client.exists(storage_key)
 
 
 def empty(value):
     if not value:
         return True
+    return None
 
 
-def _clean_ttl(request):
-    if not request.form.get("ttl"):
+def _clean_ttl(ttl_request):
+    if not ttl_request.form.get("ttl"):
         return 604800
 
     try:
-        time_period = int(request.form.get("ttl"))
+        time_period = int(ttl_request.form.get("ttl"))
     except ValueError:
         abort(400, "TTL must be an integer")
 
