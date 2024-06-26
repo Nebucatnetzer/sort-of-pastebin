@@ -30,7 +30,7 @@
                 inherit (old) src;
                 name = "${old.pname}-${old.version}";
                 sourceRoot = "${old.pname}-${old.version}/${cargoRoot}";
-                sha256 = "sha256-qaXQiF1xZvv4sNIiR2cb5TfD7oNiYdvUwcm37nh2P2M=";
+                sha256 = "sha256-PgxPcFocEhnQyrsNtCN8YHiMptBmk1PUhEDQFdUR1nU=";
               };
               cargoRoot = "src/rust";
             });
@@ -104,6 +104,7 @@
                   packages = [
                     env
                     tests
+                    pkgs.poetry
                   ];
                   process-managers.process-compose.enable = true;
                   processes = {
