@@ -1,13 +1,13 @@
 import os
-import sys
 import uuid
-
-import redis
 
 from cryptography.fernet import Fernet
 from flask import abort, Flask, request, jsonify
-from redis.exceptions import ConnectionError as RedisConnectionError
-from .utils import strtobool
+from peewee import DoesNotExist
+
+from snapbin.database import db
+from snapbin.models import Secret
+from snapbin.utils import strtobool
 
 
 NO_SSL = bool(strtobool(os.environ.get("NO_SSL", "False")))
@@ -22,35 +22,16 @@ if os.environ.get("DEBUG"):
 app.secret_key = os.environ.get("SECRET_KEY", "Secret Key")
 app.config.update({"STATIC_URL": os.environ.get("STATIC_URL", "static")})
 
-# Initialize Redis
-if os.environ.get("MOCK_REDIS"):
-    from fakeredis import FakeStrictRedis
 
-    redis_client = FakeStrictRedis()
-elif os.environ.get("REDIS_URL"):
-    redis_client = redis.StrictRedis.from_url(os.environ.get("REDIS_URL"))
-else:
-    redis_host = os.environ.get("REDIS_HOST", "localhost")
-    redis_port = os.environ.get("REDIS_PORT", 6379)
-    redis_db = os.environ.get("SNAPPASS_REDIS_DB", 0)
-    redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_db)
-REDIS_PREFIX = os.environ.get("REDIS_PREFIX", "snappass")
+@app.before_request
+def before_request():
+    db.connect()
 
 
-def check_redis_alive(fn):
-    def inner(*args, **kwargs):
-        try:
-            if fn.__name__ == "main":
-                redis_client.ping()
-            return fn(*args, **kwargs)
-        except RedisConnectionError as error:
-            print(f"Failed to connect to redis! {error}")
-            if fn.__name__ == "main":
-                sys.exit(0)
-            else:
-                return abort(500)
-
-    return inner
+@app.after_request
+def after_request(response):
+    db.close()
+    return response
 
 
 def encrypt(password):
@@ -85,7 +66,6 @@ def parse_token(token):
     return storage_key, decryption_key
 
 
-@check_redis_alive
 def set_password(password, ttl):
     """
     Encrypt and store the password for the specified lifetime.
@@ -93,15 +73,14 @@ def set_password(password, ttl):
     Returns a token comprised of the key where the encrypted password
     is stored, and the decryption key.
     """
-    storage_key = REDIS_PREFIX + uuid.uuid4().hex
+    storage_key = uuid.uuid4().hex
     encrypted_password, encryption_key = encrypt(password)
-    redis_client.setex(storage_key, ttl, encrypted_password)
+    Secret.create(storage_key=storage_key, ttl=ttl, value=encrypted_password)
     encryption_key = encryption_key.decode("utf-8")
     token = TOKEN_SEPARATOR.join([storage_key, encryption_key])
     return token
 
 
-@check_redis_alive
 def get_password(token):
     """
     From a given token, return the initial password.
@@ -109,21 +88,19 @@ def get_password(token):
     If the token is tilde-separated, we decrypt the password fetched from Redis.
     If not, the password is simply returned as is.
     """
-    storage_key, decryption_key = parse_token(token)
-    password = redis_client.get(storage_key)
-    redis_client.delete(storage_key)
+    try:
+        storage_key, decryption_key = parse_token(token)
+        secret = Secret.get_by_id(storage_key)
+        password = secret.value
+        secret.delete_instance()
 
-    if password is not None:
-        if decryption_key is not None:
-            password = decrypt(password, decryption_key)
-        return password.decode("utf-8")
-    return None
-
-
-@check_redis_alive
-def password_exists(token):
-    storage_key, _ = parse_token(token)
-    return redis_client.exists(storage_key)
+        if password is not None:
+            if decryption_key is not None:
+                password = decrypt(password, decryption_key)
+                return password.decode("utf-8")
+        return None
+    except DoesNotExist:
+        return None
 
 
 def empty(value):
@@ -180,7 +157,6 @@ def show_password():
     return jsonify(password=password)
 
 
-@check_redis_alive
 def main():
     app.run(host="0.0.0.0")
 
