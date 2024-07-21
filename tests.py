@@ -12,13 +12,15 @@ from snapbin.models import Secret
 
 
 def test_get_password(memory_db):
+    _ = memory_db
     password = "melatonin overdose 1337!$"
     key = snap.set_password(password, 30)
     assert password == snap.get_password(key), "passwords do not match"
     assert snap.get_password(key) is None, "password should be expired"
 
 
-def test_password_is_not_stored_in_plaintext():
+def test_password_is_not_stored_in_plaintext(memory_db):
+    _ = memory_db
     password = "trustno1"
     token = snap.set_password(password, 30)
     redis_key = token.split(snap.TOKEN_SEPARATOR, maxsplit=1)[0]
@@ -26,25 +28,27 @@ def test_password_is_not_stored_in_plaintext():
     assert stored_password_text not in password
 
 
-def test_returned_token_format():
+def test_returned_token_format(memory_db):
+    _ = memory_db
     password = "trustsome1"
     token = snap.set_password(password, 30)
     token_fragments = token.split(snap.TOKEN_SEPARATOR)
     assert 2 == len(token_fragments)
-    redis_key, encryption_key = token_fragments
-    assert (32 + len(snap.REDIS_PREFIX)) == len(redis_key)
+    storage_key, encryption_key = token_fragments
+    assert 32 == len(storage_key)
     try:
         Fernet(encryption_key.encode("utf-8"))
     except ValueError:
         assert False, "the encryption key is not valid"
 
 
-def test_encryption_key_is_returned():
+def test_encryption_key_is_returned(memory_db):
+    _ = memory_db
     password = "trustany1"
     token = snap.set_password(password, 30)
     token_fragments = token.split(snap.TOKEN_SEPARATOR)
-    redis_key, encryption_key = token_fragments
-    stored_password = snap.redis_client.get(redis_key)
+    storage_key, encryption_key = token_fragments
+    stored_password = Secret.get(storage_key=storage_key).value
     fernet = Fernet(encryption_key.encode("utf-8"))
     decrypted_password = fernet.decrypt(stored_password).decode("utf-8")
     assert password == decrypted_password
@@ -56,15 +60,15 @@ def test_unencrypted_passwords_still_work():
     snap.redis_client.setex(storage_key, 30, unencrypted_password)
     retrieved_password = snap.get_password(storage_key)
     assert unencrypted_password == retrieved_password
-
-
-def test_password_is_decoded():
+def test_password_is_decoded(memory_db):
+    _ = memory_db
     password = "correct horse battery staple"
     key = snap.set_password(password, 30)
     assert not isinstance(snap.get_password(key), bytes)
 
 
-def test_clean_input():
+def test_clean_input(memory_db):
+    _ = memory_db
     # Test Bad Data
     with snap.app.test_request_context(
         "/", data={"password": "foo", "ttl": "bar"}, method="POST"
@@ -89,13 +93,15 @@ def test_clean_input():
         assert (3600, "foo") == snap.clean_input()
 
 
-def test_password_before_expiration():
+def test_password_before_expiration(memory_db):
+    _ = memory_db
     password = "fidelio"
     key = snap.set_password(password, 1)
     assert password == snap.get_password(key)
 
 
-def test_password_after_expiration():
+def test_password_after_expiration(memory_db):
+    _ = memory_db
     password = "open sesame"
     key = snap.set_password(password, 1)
     time.sleep(1.5)
