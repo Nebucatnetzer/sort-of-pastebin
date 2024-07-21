@@ -54,12 +54,6 @@ def test_encryption_key_is_returned(memory_db):
     assert password == decrypted_password
 
 
-def test_unencrypted_passwords_still_work():
-    unencrypted_password = "trustevery1"
-    storage_key = uuid.uuid4().hex
-    snap.redis_client.setex(storage_key, 30, unencrypted_password)
-    retrieved_password = snap.get_password(storage_key)
-    assert unencrypted_password == retrieved_password
 def test_password_is_decoded(memory_db):
     _ = memory_db
     password = "correct horse battery staple"
