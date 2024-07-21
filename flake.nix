@@ -84,6 +84,7 @@
               modules = [
                 {
                   env = {
+                    DEBUG = "True";
                     NO_SSL = "True";
                     PC_PORT_NUM = "9999";
                   };
