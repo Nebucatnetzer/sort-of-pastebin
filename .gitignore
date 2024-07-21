@@ -254,3 +254,4 @@ result-*
 /.direnv/
 /.devenv/
 /process-compose.yml
+/snapbin.db
