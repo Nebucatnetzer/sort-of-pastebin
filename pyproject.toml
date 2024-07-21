@@ -18,6 +18,7 @@ python = "^3.11"
 flask = "^3.0.0"
 cryptography = "^42.0.4"
 gunicorn = "^22.0.0"
+peewee = "^3.17.6"
 
 
 [tool.poetry.group.dev.dependencies]
