@@ -73,17 +73,6 @@
               ];
             };
           };
-          redis-image = pkgs.dockerTools.buildImage {
-            name = "redis";
-            tag = "latest";
-            copyToRoot = pkgs.buildEnv {
-              name = "image-root";
-              paths = [ pkgs.redis ];
-            };
-            config = {
-              Cmd = [ "${pkgs.redis}/bin/redis-server" ];
-            };
-          };
         };
         devShells =
           let
@@ -113,7 +102,6 @@
                       exec = "gunicorn snapbin.main:app";
                     };
                   };
-                  services.redis.enable = true;
                 }
               ];
             };
