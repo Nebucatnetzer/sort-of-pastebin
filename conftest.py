@@ -17,6 +17,7 @@ def memory_db():
 
 
 @pytest.fixture()
-def app():
+def app(memory_db):
+    _ = memory_db
     main.app.config["TESTING"] = True
     return main.app.test_client()
