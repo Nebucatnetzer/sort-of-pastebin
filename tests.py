@@ -11,7 +11,7 @@ from werkzeug.exceptions import BadRequest
 import snapbin.main as snapbin
 
 
-def test_get_password():
+def test_get_password(memory_db):
     password = "melatonin overdose 1337!$"
     key = snapbin.set_password(password, 30)
     assert password == snapbin.get_password(key)
