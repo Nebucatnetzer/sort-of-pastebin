@@ -1,23 +1,21 @@
-import os
-
 import pytest
 
-os.environ["MOCK_DB"] = "1"
 from snapbin import main
-from snapbin.database import db
 from snapbin.models import Secret
 
 
 @pytest.fixture(scope="function")
 def memory_db():
-    db.connect()
-    db.create_tables([Secret])
-    yield db
-    db.close()
+    main.db.init(":memory:")
+    main.db.connect()
+    main.db.create_tables([Secret])
+    yield main.db
+    main.db.close()
 
 
 @pytest.fixture()
-def app(memory_db):
-    _ = memory_db
+def app(tmpdir):
+    temp_directory = tmpdir.mkdir("db")
+    main.initialize_db(db_path=f"{temp_directory}/test.db")
     main.app.config["TESTING"] = True
     return main.app.test_client()

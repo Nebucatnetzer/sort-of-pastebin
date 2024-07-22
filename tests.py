@@ -1,5 +1,4 @@
 import time
-import uuid
 
 import pytest
 
@@ -105,7 +104,7 @@ def test_password_after_expiration(memory_db):
 def test_preview_password(app):
     password = "I like novelty kitten statues!"
     key = snap.set_password(password, 30)
-    rv = app.get("/{0}".format(key))
+    rv = app.get(f"/{key}")
     assert password not in rv.get_data(as_text=True)
 
 

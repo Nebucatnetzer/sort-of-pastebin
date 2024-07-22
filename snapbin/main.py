@@ -4,11 +4,11 @@ import uuid
 from cryptography.fernet import Fernet
 from flask import abort, Flask, request, jsonify
 from peewee import DoesNotExist
+from peewee import OperationalError
 
 from snapbin.database import db
 from snapbin.models import Secret
 from snapbin.utils import strtobool
-
 
 NO_SSL = bool(strtobool(os.environ.get("NO_SSL", "False")))
 HOST_OVERRIDE = os.environ.get("HOST_OVERRIDE", None)
@@ -22,9 +22,21 @@ if os.environ.get("DEBUG"):
 app.secret_key = os.environ.get("SECRET_KEY", "Secret Key")
 app.config.update({"STATIC_URL": os.environ.get("STATIC_URL", "static")})
 
+
+def initialize_db(db_path):
+    if not os.path.exists(db_path):
+        db.init(db_path)
+        db.connect()
+        db.create_tables([Secret])
+        db.close()
+
+
 @app.before_request
 def before_request():
-    db.connect()
+    try:
+        db.connect()
+    except OperationalError:
+        return
 
 
 @app.after_request
@@ -161,6 +173,8 @@ def show_password():
 
 
 def main():
+    db_path = os.environ.get("DB_PATH", "snapbin.db")
+    initialize_db(db_path=db_path)
     app.run(host="0.0.0.0")
 
 
