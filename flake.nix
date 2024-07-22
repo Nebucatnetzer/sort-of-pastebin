@@ -25,6 +25,21 @@
         python = pkgs.python312;
         overrides = poetry2nix.defaultPoetryOverrides.extend (
           self: super: {
+            types-peewee = super.types-peewee.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-markupsafe = super.types-markupsafe.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-werkzeug = super.types-werkzeug.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-jinja2 = super.types-jinja2.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-flask = super.types-flask.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
             cryptography = super.cryptography.overridePythonAttrs (old: rec {
               cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
                 inherit (old) src;
