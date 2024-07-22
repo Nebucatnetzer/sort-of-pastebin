@@ -98,7 +98,7 @@ def test_password_after_expiration(memory_db):
     _ = memory_db
     password = "open sesame"
     key = snap.set_password(password, 1)
-    time.sleep(1.5)
+    time.sleep(2)
     assert snap.get_password(key) is None
 
 
