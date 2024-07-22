@@ -22,7 +22,6 @@ if os.environ.get("DEBUG"):
 app.secret_key = os.environ.get("SECRET_KEY", "Secret Key")
 app.config.update({"STATIC_URL": os.environ.get("STATIC_URL", "static")})
 
-
 @app.before_request
 def before_request():
     db.connect()
@@ -91,6 +90,10 @@ def get_password(token):
     try:
         storage_key, decryption_key = parse_token(token)
         secret = Secret.get_by_id(storage_key)
+        if secret.is_expired():
+            secret.delete_instance()
+            return None
+
         password = secret.value
         secret.delete_instance()
 
