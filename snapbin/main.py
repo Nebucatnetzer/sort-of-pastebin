@@ -38,6 +38,12 @@ def initialize_db(db_path: str) -> None:
         db.close()
 
 
+with app.app_context():
+    tests_active = os.environ.get("SNAPBIN_TESTING", "")
+    if not tests_active:
+        initialize_db(db_path=os.environ.get("DB_PATH", "snapbin.db"))
+
+
 @app.before_request
 def before_request() -> None:
     try:
