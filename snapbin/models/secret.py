@@ -15,7 +15,7 @@ class Secret(BaseModel):
     def is_expired(self) -> bool:
         """Returns false when the creation date is older than the ttl (time to live)"""
         now = datetime.datetime.now()
-        difference = int((now - self.creation_date).total_seconds())
+        difference = int((now - self.creation_date).total_seconds())  # type: ignore
         if difference > self.ttl:
             return True
         return False

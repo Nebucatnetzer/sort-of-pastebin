@@ -1,8 +1,14 @@
 import os
 import uuid
+from typing import Any
 
 from cryptography.fernet import Fernet
-from flask import abort, Flask, request, jsonify
+from flask import abort
+from flask import jsonify
+from flask import request
+from flask import Request
+from flask import Response
+from flask import Flask
 from peewee import DoesNotExist
 from peewee import OperationalError
 
@@ -23,8 +29,9 @@ app.secret_key = os.environ.get("SECRET_KEY", "Secret Key")
 app.config.update({"STATIC_URL": os.environ.get("STATIC_URL", "static")})
 
 
-def initialize_db(db_path):
+def initialize_db(db_path: str) -> None:
     if not os.path.exists(db_path):
+        print("Creating database")
         db.init(db_path)
         db.connect()
         db.create_tables([Secret])
@@ -32,20 +39,20 @@ def initialize_db(db_path):
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     try:
         db.connect()
     except OperationalError:
-        return
+        pass
 
 
 @app.after_request
-def after_request(response):
+def after_request(response: Response) -> Response:
     db.close()
     return response
 
 
-def encrypt(password):
+def encrypt(password: str) -> tuple[bytes, bytes]:
     """
     Take a password string, encrypt it with Fernet symmetric encryption,
     and return the result (bytes), with the decryption key (bytes)
@@ -56,7 +63,7 @@ def encrypt(password):
     return encrypted_password, encryption_key
 
 
-def decrypt(password, decryption_key):
+def decrypt(password: bytes, decryption_key: bytes):
     """
     Decrypt a password (bytes) using the provided key (bytes),
     and return the plain-text password (bytes).
@@ -65,7 +72,7 @@ def decrypt(password, decryption_key):
     return fernet.decrypt(password)
 
 
-def parse_token(token):
+def parse_token(token: str) -> tuple[str, bytes | None]:
     token_fragments = token.split(TOKEN_SEPARATOR, 1)  # Split once, not more.
     storage_key = token_fragments[0]
 
@@ -77,7 +84,7 @@ def parse_token(token):
     return storage_key, decryption_key
 
 
-def set_password(password, ttl):
+def set_password(password: str, ttl: int) -> str:
     """
     Encrypt and store the password for the specified lifetime.
 
@@ -87,12 +94,12 @@ def set_password(password, ttl):
     storage_key = uuid.uuid4().hex
     encrypted_password, encryption_key = encrypt(password)
     Secret.create(storage_key=storage_key, ttl=ttl, value=encrypted_password)
-    encryption_key = encryption_key.decode("utf-8")
-    token = TOKEN_SEPARATOR.join([storage_key, encryption_key])
+    decoded_encryption_key = encryption_key.decode("utf-8")
+    token = TOKEN_SEPARATOR.join([storage_key, decoded_encryption_key])
     return token
 
 
-def get_password(token):
+def get_password(token: str) -> str | None:
     """
     From a given token, return the initial password.
 
@@ -118,18 +125,22 @@ def get_password(token):
         return None
 
 
-def empty(value):
+def empty(value: Any) -> bool:
     if not value:
         return True
-    return None
+    return False
 
 
-def _clean_ttl(ttl_request):
+def _clean_ttl(ttl_request: Request) -> int:
     if not ttl_request.form.get("ttl"):
         return 604800
 
     try:
-        time_period = int(ttl_request.form.get("ttl"))
+        time_period = ttl_request.form.get("ttl")
+        if isinstance(time_period, str):
+            time_period = int(ttl_request.form.get("ttl"))  # type: ignore
+        if not isinstance(time_period, int):
+            raise ValueError("TTL must be a string")
     except ValueError:
         abort(400, "TTL must be an integer")
 
@@ -138,24 +149,24 @@ def _clean_ttl(ttl_request):
     return time_period
 
 
-def clean_input():
+def clean_input(form_request: Request = request) -> tuple[int, str]:
     """
     Make sure we're not getting bad data from the front end,
     format data to be machine readable
     """
-    if empty(request.form.get("password", "")):
+    if empty(form_request.form.get("password", "")):
         abort(400)
 
-    time_period = _clean_ttl(request)
-    return time_period, request.form["password"]
+    time_period = _clean_ttl(form_request)
+    return time_period, form_request.form["password"]
 
 
 @app.route("/", methods=["POST"])
 def handle_password():
     if request.is_json:
         request.form = request.get_json()
-    ttl, password = clean_input()
-    token = set_password(password, ttl)
+    ttl, password = clean_input(form_request=request)
+    token = set_password(password=password, ttl=ttl)
     return jsonify(key=token)
 
 
