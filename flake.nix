@@ -65,11 +65,6 @@
           inherit overrides;
           inherit python;
         };
-        tests = pkgs.writeShellScriptBin "python-test" ''
-          trap "process-compose down &> /dev/null" EXIT
-          process-compose up --tui=false &
-          pytest --cov=snapbin tests.py
-        '';
       in
       {
         packages = {
@@ -108,13 +103,11 @@
                   '';
                   packages = [
                     env
-                    tests
                     pkgs.poetry
                   ];
                   process-managers.process-compose.enable = true;
                   processes = {
                     webserver = {
-                      process-compose.depends_on.redis.condition = "process_started";
                       exec = "gunicorn snapbin.main:app";
                     };
                   };

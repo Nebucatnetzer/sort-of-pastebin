@@ -14,4 +14,4 @@ jobs:
       - uses: cachix/install-nix-action@v26
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Tests
-        run: nix develop --impure --command "python-test"
+        run: nix develop --impure --command pytest --cov=snapbin tests.py
