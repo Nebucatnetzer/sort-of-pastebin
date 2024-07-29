@@ -6,6 +6,7 @@ from peewee import IntegerField
 from snapbin.models.base_model import BaseModel
 
 
+# pylint: disable=too-few-public-methods
 class Secret(BaseModel):
     creation_date = DateTimeField(default=datetime.datetime.now())
     storage_key = CharField(max_length=32, primary_key=True)

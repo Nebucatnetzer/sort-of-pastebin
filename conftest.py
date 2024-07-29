@@ -2,6 +2,7 @@ import os
 import pytest
 
 os.environ["SNAPBIN_TESTING"] = "true"
+# pylint: disable=wrong-import-position
 from snapbin import main
 from snapbin.models.secret import Secret
 
