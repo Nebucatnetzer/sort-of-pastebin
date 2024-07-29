@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from werkzeug.exceptions import BadRequest
 
 import snapbin.main as snap
-from snapbin.models import Secret
+from snapbin.models.secret import Secret
 
 
 def test_get_password(memory_db):

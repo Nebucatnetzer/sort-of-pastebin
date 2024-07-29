@@ -3,7 +3,7 @@ import pytest
 
 os.environ["SNAPBIN_TESTING"] = "true"
 from snapbin import main
-from snapbin.models import Secret
+from snapbin.models.secret import Secret
 
 
 @pytest.fixture(scope="function")

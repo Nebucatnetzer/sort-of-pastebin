@@ -13,7 +13,7 @@ from peewee import DoesNotExist
 from peewee import OperationalError
 
 from snapbin.database import db
-from snapbin.models import Secret
+from snapbin.models.secret import Secret
 from snapbin.utils import strtobool
 
 NO_SSL = bool(strtobool(os.environ.get("NO_SSL", "False")))
