@@ -14,4 +14,22 @@ jobs:
       - uses: cachix/install-nix-action@v26
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Tests
-        run: nix develop --impure --command "python-test"
+        run: nix develop --impure --command pytest --cov=snapbin tests.py
+
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: cachix/install-nix-action@v26
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Tests
+        run: nix develop --impure --command pylint snapbin
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: cachix/install-nix-action@v26
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Tests
+        run: nix develop --impure --command mypy .

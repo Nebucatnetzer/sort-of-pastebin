@@ -25,6 +25,21 @@
         python = pkgs.python312;
         overrides = poetry2nix.defaultPoetryOverrides.extend (
           self: super: {
+            types-peewee = super.types-peewee.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-markupsafe = super.types-markupsafe.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-werkzeug = super.types-werkzeug.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-jinja2 = super.types-jinja2.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
+            types-flask = super.types-flask.overridePythonAttrs (old: {
+              buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
+            });
             cryptography = super.cryptography.overridePythonAttrs (old: rec {
               cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
                 inherit (old) src;
@@ -50,11 +65,6 @@
           inherit overrides;
           inherit python;
         };
-        tests = pkgs.writeShellScriptBin "python-test" ''
-          trap "process-compose down &> /dev/null" EXIT
-          process-compose up --tui=false &
-          pytest --cov=snapbin tests.py
-        '';
       in
       {
         packages = {
@@ -73,17 +83,6 @@
               ];
             };
           };
-          redis-image = pkgs.dockerTools.buildImage {
-            name = "redis";
-            tag = "latest";
-            copyToRoot = pkgs.buildEnv {
-              name = "image-root";
-              paths = [ pkgs.redis ];
-            };
-            config = {
-              Cmd = [ "${pkgs.redis}/bin/redis-server" ];
-            };
-          };
         };
         devShells =
           let
@@ -95,6 +94,7 @@
               modules = [
                 {
                   env = {
+                    DEBUG = "True";
                     NO_SSL = "True";
                     PC_PORT_NUM = "9999";
                   };
@@ -103,17 +103,14 @@
                   '';
                   packages = [
                     env
-                    tests
                     pkgs.poetry
                   ];
                   process-managers.process-compose.enable = true;
                   processes = {
                     webserver = {
-                      process-compose.depends_on.redis.condition = "process_started";
                       exec = "gunicorn snapbin.main:app";
                     };
                   };
-                  services.redis.enable = true;
                 }
               ];
             };
