@@ -12,15 +12,14 @@
   outputs =
     {
       self,
-      nixpkgs,
       devenv,
       flake-utils,
-      poetry2nix,
+      ...
     }@inputs:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = inputs.nixpkgs.legacyPackages.${system};
         poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
         python = pkgs.python312;
         overrides = poetry2nix.defaultPoetryOverrides.extend (
@@ -97,15 +96,17 @@
                     DEBUG = "True";
                     NO_SSL = "True";
                     PC_PORT_NUM = "9999";
+                    PC_SOCKET_PATH = config.process.managers.process-compose.unixSocket.path;
                   };
-                  enterShell = ''
-                    ln -sf ${config.process-managers.process-compose.configFile} ${config.env.DEVENV_ROOT}/process-compose.yml
-                  '';
                   packages = [
                     env
                     pkgs.poetry
                   ];
-                  process-managers.process-compose.enable = true;
+                  process.manager.implementation = "process-compose";
+                  process.managers.process-compose = {
+                    enable = true;
+                    unixSocket.enable = true;
+                  };
                   processes = {
                     webserver = {
                       exec = "gunicorn snapbin.main:app";
