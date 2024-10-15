@@ -39,15 +39,6 @@
             types-flask = super.types-flask.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
             });
-            cryptography = super.cryptography.overridePythonAttrs (old: rec {
-              cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
-                inherit (old) src;
-                name = "${old.pname}-${old.version}";
-                sourceRoot = "${old.pname}-${old.version}/${cargoRoot}";
-                sha256 = "sha256-PgxPcFocEhnQyrsNtCN8YHiMptBmk1PUhEDQFdUR1nU=";
-              };
-              cargoRoot = "src/rust";
-            });
           }
         );
         application = poetry2nix.mkPoetryApplication {
