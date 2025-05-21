@@ -11,25 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: cachix/install-nix-action@v26
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
       - name: Tests
-        run: nix develop --impure --command pytest --cov=snapbin tests.py
+        run: nix develop --command pytest --cov=snapbin tests.py
 
   pylint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: cachix/install-nix-action@v26
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
       - name: Tests
-        run: nix develop --impure --command pylint snapbin
+        run: nix develop --command pylint snapbin
 
   mypy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: cachix/install-nix-action@v26
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
       - name: Tests
-        run: nix develop --impure --command mypy .
+        run: nix develop --command mypy .
