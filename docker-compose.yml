@@ -1,7 +1,0 @@
-services:
-  app:
-    image: ghcr.io/nebucatnetzer/sort-of-pastebin/snapbin:latest
-    ports:
-      - "8000:8000"
-  redis:
-    image: ghcr.io/nebucatnetzer/sort-of-pastebin/redis:latest
