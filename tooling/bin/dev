@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+cd "$DEVENV_ROOT"
+nix run .#dev-services

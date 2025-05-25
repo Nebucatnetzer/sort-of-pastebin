@@ -1,14 +1,15 @@
+# mypy: disable-error-code="no-untyped-call"
 import os
 import uuid
 from typing import Any
 
 from cryptography.fernet import Fernet
+from flask import Flask
+from flask import Request
+from flask import Response
 from flask import abort
 from flask import jsonify
 from flask import request
-from flask import Request
-from flask import Response
-from flask import Flask
 from peewee import DoesNotExist
 from peewee import OperationalError
 
@@ -69,7 +70,7 @@ def encrypt(password: str) -> tuple[bytes, bytes]:
     return encrypted_password, encryption_key
 
 
-def decrypt(password: bytes, decryption_key: bytes):
+def decrypt(password: bytes, decryption_key: bytes) -> bytes:
     """
     Decrypt a password (bytes) using the provided key (bytes),
     and return the plain-text password (bytes).
@@ -125,7 +126,7 @@ def get_password(token: str) -> str | None:
         if password is not None:
             if decryption_key is not None:
                 password = decrypt(password, decryption_key)
-                return password.decode("utf-8")
+                return str(password.decode("utf-8"))
         return None
     except DoesNotExist:
         return None
@@ -168,7 +169,7 @@ def clean_input(form_request: Request = request) -> tuple[int, str]:
 
 
 @app.route("/", methods=["POST"])
-def handle_password():
+def handle_password() -> Response:
     if request.is_json:
         request.form = request.get_json()
     ttl, password = clean_input(form_request=request)
@@ -177,7 +178,7 @@ def handle_password():
 
 
 @app.route("/get-secret", methods=["POST"])
-def show_password():
+def show_password() -> Response:
     if request.is_json:
         request.form = request.get_json()
     if empty(request.form.get("key", "")):
@@ -189,7 +190,7 @@ def show_password():
     return jsonify(password=password)
 
 
-def main():
+def main() -> None:
     db_path = os.environ.get("DB_PATH", "snapbin.db")
     initialize_db(db_path=db_path)
     app.run(host="0.0.0.0")

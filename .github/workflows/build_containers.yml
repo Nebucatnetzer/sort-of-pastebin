@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: cachix/install-nix-action@v26
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: cachix/install-nix-action@v31.3.0
       - name: Build snapbin image
         run: nix build .#snapbin-image && docker load < ./result
 
