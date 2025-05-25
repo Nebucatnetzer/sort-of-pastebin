@@ -150,6 +150,7 @@
               packages = [
                 pythonDev
                 pkgs.poetry
+                pkgs.skopeo
               ];
               inputsFrom = [
                 config.process-compose."dev-services".services.outputs.devShell
