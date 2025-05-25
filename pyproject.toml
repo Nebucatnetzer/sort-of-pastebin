@@ -1,6 +1,11 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "snapbin"
 version = "0.1.0"
+requires-python = ">=3.12"
 description = "A little service to store and encrypt information, deleting it once it's retrieved."
 authors = ["Andreas Zweili <andreas@zweili.ch>"]
 license = "GPL3.0+"
@@ -13,25 +18,18 @@ disable = [
     "missing-class-docstring",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-flask = "^3.0.0"
-cryptography = "^43.0.1"
-gunicorn = "^22.0.0"
-peewee = "^3.17.6"
+[tool.hatch.build.targets.sdit]
+include = [
+  "snapbin",
+  "README.md"
+]
+[tool.hatch.build.targets.wheel]
+packages = [
+  "snapbin",
+]
 
+[tool.isort]
+force_single_line = true
 
-[tool.poetry.group.dev.dependencies]
-python-lsp-server = "^1.9.0"
-pytest = "^7.4.3"
-pytest-cov = "^4.1.0"
-mypy = "^1.8.0"
-pylint = "^3.0.3"
-freezegun = "^1.4.0"
-black = "^24.3.0"
-types-flask = "^1.1.6"
-types-peewee = "^3.17.6.20240722"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.mypy]
+strict = true

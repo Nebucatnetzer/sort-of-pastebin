@@ -1,10 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-utils.url = "github:numtide/flake-utils";
     process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
@@ -13,10 +9,11 @@
 
   outputs =
     {
+      self,
       flake-parts,
       ...
     }@inputs:
-    flake-parts.lib.mkFlake { inherit inputs; } (
+    flake-parts.lib.mkFlake { inherit inputs self; } (
       top@{ ... }:
       {
         imports = [
@@ -37,41 +34,47 @@
             ...
           }:
           let
-            poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
-            python = pkgs.python312;
-            overrides = poetry2nix.defaultPoetryOverrides.extend (
-              self: super: {
-                types-peewee = super.types-peewee.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
-                });
-                types-markupsafe = super.types-markupsafe.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
-                });
-                types-werkzeug = super.types-werkzeug.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
-                });
-                types-jinja2 = super.types-jinja2.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
-                });
-                types-flask = super.types-flask.overridePythonAttrs (old: {
-                  buildInputs = (old.buildInputs or [ ]) ++ [ super.setuptools ];
-                });
-              }
-            );
-            application = poetry2nix.mkPoetryApplication {
-              projectDir = ./.;
-              inherit overrides;
-              inherit python;
-            };
-            env = poetry2nix.mkPoetryEnv {
-              projectDir = ./.;
-              groups = [ "dev" ];
-              editablePackageSources = {
-                snapbin = ./snapbin;
+            pyproject = pkgs.lib.importTOML ./pyproject.toml;
+            myPython = pkgs.python312.override {
+              self = myPython;
+              packageOverrides = pyfinal: pyprev: {
+                # An editable package with a script that loads our mutable location
+                snapbin-editable = pyfinal.mkPythonEditablePackage {
+                  # Inherit project metadata from pyproject.toml
+                  pname = pyproject.project.name;
+                  inherit (pyproject.project) version;
+
+                  # The editable root passed as a string
+                  root = "$DEVENV_ROOT/snapbin"; # Use environment variable expansion at runtime
+                };
               };
-              inherit overrides;
-              inherit python;
             };
+
+            pythonDev = myPython.withPackages (p: [
+              p.black
+              p.cryptography
+              p.flask
+              p.freezegun
+              p.gunicorn
+              p.isort
+              p.mypy
+              p.peewee
+              p.pylint
+              p.pylsp-mypy
+              p.pytest
+              p.pytest-cov
+              p.pytest-xdist
+              p.python-lsp-ruff
+              p.python-lsp-server
+              p.ruff
+              p.snapbin-editable
+            ]);
+            pythonProd = pkgs.python312.withPackages (p: [
+              p.cryptography
+              p.flask
+              p.gunicorn
+              p.peewee
+            ]);
           in
           {
             process-compose."dev-services" = {
@@ -85,7 +88,7 @@
                   settings.processes.gunicorn = {
                     command = ''
                       cd "$DEVENV_ROOT"
-                      ${application.dependencyEnv}/bin/gunicorn --bind=0.0.0.0 snapbin.main:app
+                      ${pythonDev}/bin/gunicorn --bind=0.0.0.0 snapbin.main:app
                     '';
                   };
                 }
@@ -97,11 +100,14 @@
                 tag = "latest";
                 copyToRoot = pkgs.buildEnv {
                   name = "image-root";
-                  paths = [ application.dependencyEnv ];
+                  paths = [
+                    pythonProd
+                    self
+                  ];
                 };
                 config = {
                   Cmd = [
-                    "${application.dependencyEnv}/bin/gunicorn"
+                    "${pythonProd}/bin/gunicorn"
                     "--bind=0.0.0.0"
                     "snapbin.main:app"
                   ];
@@ -124,7 +130,7 @@
                 PC_PORT_NUM = "9999";
               };
               packages = [
-                env
+                pythonDev
                 pkgs.poetry
               ];
               inputsFrom = [
