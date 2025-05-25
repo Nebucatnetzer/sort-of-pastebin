@@ -3,6 +3,7 @@ import datetime
 from peewee import CharField
 from peewee import DateTimeField
 from peewee import IntegerField
+
 from snapbin.models.base_model import BaseModel
 
 

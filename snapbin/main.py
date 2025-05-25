@@ -3,12 +3,12 @@ import uuid
 from typing import Any
 
 from cryptography.fernet import Fernet
+from flask import Flask
+from flask import Request
+from flask import Response
 from flask import abort
 from flask import jsonify
 from flask import request
-from flask import Request
-from flask import Response
-from flask import Flask
 from peewee import DoesNotExist
 from peewee import OperationalError
 
