@@ -47,6 +47,23 @@
                   # The editable root passed as a string
                   root = "$DEVENV_ROOT/snapbin"; # Use environment variable expansion at runtime
                 };
+                types-peewee =
+                  let
+                    pname = "types-peewee";
+                    version = "3.18.1.20250516";
+                  in
+                  pyfinal.buildPythonPackage {
+                    inherit pname version;
+                    format = "setuptools";
+                    src = pkgs.fetchurl {
+                      url = "https://files.pythonhosted.org/packages/9c/21/65fd9a10a988cc93afe5de22c0c7cffa2e20e9b31a3b964f78769f7d90c9/types_peewee-3.18.1.20250516.tar.gz";
+                      hash = "sha256-wUMNUM9oZnUZhLrUYVSOXBYUNYJ9sSB2pXp5qrFyzC8=";
+                    };
+
+                    # Module doesn't have tests
+                    doCheck = false;
+                    pythonImportsCheck = [ "peewee-stubs" ];
+                  };
               };
             };
 
@@ -68,6 +85,7 @@
               p.python-lsp-server
               p.ruff
               p.snapbin-editable
+              p.types-peewee
             ]);
             pythonProd = pkgs.python312.withPackages (p: [
               p.cryptography
