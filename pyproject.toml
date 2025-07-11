@@ -20,16 +20,6 @@ disable = [
     "missing-class-docstring",
 ]
 
-[tool.hatch.build.targets.sdit]
-include = [
-  "snapbin",
-  "README.md"
-]
-[tool.hatch.build.targets.wheel]
-packages = [
-  "snapbin",
-]
-
 [tool.isort]
 force_single_line = true
 

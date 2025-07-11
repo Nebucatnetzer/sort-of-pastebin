@@ -37,6 +37,14 @@
             myPython = pkgs.python312.override {
               self = myPython;
               packageOverrides = pyfinal: pyprev: {
+                snapbin = pyfinal.buildPythonPackage {
+                  pname = pyproject.project.name;
+                  inherit (pyproject.project) version;
+                  pyproject = true;
+                  src = ./.;
+                  propagatedBuildInputs = [ pyfinal.hatchling ];
+
+                };
                 # An editable package with a script that loads our mutable location
                 snapbin-editable = pyfinal.mkPythonEditablePackage {
                   # Inherit project metadata from pyproject.toml
@@ -44,7 +52,7 @@
                   inherit (pyproject.project) version;
 
                   # The editable root passed as a string
-                  root = "$DEVENV_ROOT/snapbin"; # Use environment variable expansion at runtime
+                  root = "$DEVENV_ROOT/src"; # Use environment variable expansion at runtime
                 };
                 types-peewee =
                   let
@@ -86,11 +94,12 @@
               p.snapbin-editable
               p.types-peewee
             ]);
-            pythonProd = pkgs.python312.withPackages (p: [
+            pythonProd = myPython.withPackages (p: [
               p.cryptography
               p.flask
               p.gunicorn
               p.peewee
+              p.snapbin
             ]);
           in
           {
