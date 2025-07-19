@@ -7,25 +7,17 @@ name = "snapbin"
 version = "0.1.0"
 requires-python = ">=3.12"
 description = "A little service to store and encrypt information, deleting it once it's retrieved."
-authors = ["Andreas Zweili <andreas@zweili.ch>"]
-license = "GPL3.0+"
-readme = "README.org"
+authors = [
+    {name = "Andreas Zweili", email = "andreas@zweili.ch"},
+]
+license = "GPL-3.0-or-later"
+readme = {file = "README.org", content-type = "text/plain"}
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
     "missing-module-docstring",
     "missing-function-docstring",
     "missing-class-docstring",
-]
-
-[tool.hatch.build.targets.sdit]
-include = [
-  "snapbin",
-  "README.md"
-]
-[tool.hatch.build.targets.wheel]
-packages = [
-  "snapbin",
 ]
 
 [tool.isort]

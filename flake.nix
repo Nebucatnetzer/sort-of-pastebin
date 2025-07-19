@@ -37,6 +37,14 @@
             myPython = pkgs.python312.override {
               self = myPython;
               packageOverrides = pyfinal: pyprev: {
+                snapbin = pyfinal.buildPythonPackage {
+                  pname = pyproject.project.name;
+                  inherit (pyproject.project) version;
+                  pyproject = true;
+                  src = ./.;
+                  propagatedBuildInputs = [ pyfinal.hatchling ];
+
+                };
                 # An editable package with a script that loads our mutable location
                 snapbin-editable = pyfinal.mkPythonEditablePackage {
                   # Inherit project metadata from pyproject.toml
@@ -44,7 +52,7 @@
                   inherit (pyproject.project) version;
 
                   # The editable root passed as a string
-                  root = "$DEVENV_ROOT/snapbin"; # Use environment variable expansion at runtime
+                  root = "$DEVENV_ROOT/src"; # Use environment variable expansion at runtime
                 };
                 types-peewee =
                   let
@@ -67,12 +75,10 @@
             };
 
             pythonDev = myPython.withPackages (p: [
-              p.black
               p.cryptography
               p.flask
               p.freezegun
               p.gunicorn
-              p.isort
               p.mypy
               p.peewee
               p.pylint
@@ -80,17 +86,16 @@
               p.pytest
               p.pytest-cov
               p.pytest-xdist
-              p.python-lsp-ruff
               p.python-lsp-server
-              p.ruff
               p.snapbin-editable
               p.types-peewee
             ]);
-            pythonProd = pkgs.python312.withPackages (p: [
+            pythonProd = myPython.withPackages (p: [
               p.cryptography
               p.flask
               p.gunicorn
               p.peewee
+              p.snapbin
             ]);
           in
           {
@@ -112,6 +117,7 @@
               ];
             };
             packages = {
+              inherit pkgs;
               snapbin-image = pkgs.dockerTools.buildImage {
                 name = "snapbin";
                 tag = "latest";
@@ -147,9 +153,16 @@
                 PC_PORT_NUM = "9999";
               };
               packages = [
+
+                (pkgs.buildEnv {
+                  name = "sort-of-pastebin-devShell";
+                  paths = [
+                    pkgs.black
+                    pkgs.isort
+                  ];
+                  pathsToLink = [ "/bin" ];
+                })
                 pythonDev
-                pkgs.poetry
-                pkgs.skopeo
               ];
               inputsFrom = [
                 config.process-compose."dev-services".services.outputs.devShell
