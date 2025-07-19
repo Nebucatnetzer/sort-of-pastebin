@@ -75,12 +75,10 @@
             };
 
             pythonDev = myPython.withPackages (p: [
-              p.black
               p.cryptography
               p.flask
               p.freezegun
               p.gunicorn
-              p.isort
               p.mypy
               p.peewee
               p.pylint
@@ -90,7 +88,6 @@
               p.pytest-xdist
               p.python-lsp-ruff
               p.python-lsp-server
-              p.ruff
               p.snapbin-editable
               p.types-peewee
             ]);
@@ -157,8 +154,17 @@
                 PC_PORT_NUM = "9999";
               };
               packages = [
+
+                (pkgs.buildEnv {
+                  name = "sort-of-pastebin-devShell";
+                  paths = [
+                    pkgs.black
+                    pkgs.isort
+                    pkgs.ruff
+                  ];
+                  pathsToLink = [ "/bin" ];
+                })
                 pythonDev
-                pkgs.skopeo
               ];
               inputsFrom = [
                 config.process-compose."dev-services".services.outputs.devShell
