@@ -157,7 +157,6 @@
               };
               packages = [
                 pythonDev
-                pkgs.poetry
                 pkgs.skopeo
               ];
               inputsFrom = [
