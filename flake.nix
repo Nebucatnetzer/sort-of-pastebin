@@ -86,7 +86,6 @@
               p.pytest
               p.pytest-cov
               p.pytest-xdist
-              p.python-lsp-ruff
               p.python-lsp-server
               p.snapbin-editable
               p.types-peewee
@@ -160,7 +159,6 @@
                   paths = [
                     pkgs.black
                     pkgs.isort
-                    pkgs.ruff
                   ];
                   pathsToLink = [ "/bin" ];
                 })
