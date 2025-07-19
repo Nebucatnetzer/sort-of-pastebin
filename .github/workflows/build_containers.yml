@@ -15,4 +15,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ github.actor }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: nix develop --command build-image.sh
+        run: ./tooling/bin/build-image.sh
