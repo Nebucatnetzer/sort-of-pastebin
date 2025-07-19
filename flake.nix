@@ -121,6 +121,7 @@
               ];
             };
             packages = {
+              inherit pkgs;
               snapbin-image = pkgs.dockerTools.buildImage {
                 name = "snapbin";
                 tag = "latest";
