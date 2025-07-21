@@ -13,15 +13,30 @@ authors = [
 license = "GPL-3.0-or-later"
 readme = {file = "README.org", content-type = "text/plain"}
 
-[tool.pylint."MESSAGES CONTROL"]
-disable = [
-    "missing-module-docstring",
-    "missing-function-docstring",
-    "missing-class-docstring",
-]
-
-[tool.isort]
-force_single_line = true
-
 [tool.mypy]
 strict = true
+
+[tool.ruff]
+src = ["src"]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = [ "ALL" ]
+
+[tool.ruff.lint.isort]
+force-single-line = true

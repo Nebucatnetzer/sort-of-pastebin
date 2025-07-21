@@ -81,12 +81,13 @@
               p.gunicorn
               p.mypy
               p.peewee
-              p.pylint
               p.pylsp-mypy
               p.pytest
               p.pytest-cov
               p.pytest-xdist
               p.python-lsp-server
+              p.python-lsp-ruff
+              p.ruff
               p.snapbin-editable
               p.types-peewee
             ]);
@@ -153,15 +154,6 @@
                 PC_PORT_NUM = "9999";
               };
               packages = [
-
-                (pkgs.buildEnv {
-                  name = "sort-of-pastebin-devShell";
-                  paths = [
-                    pkgs.black
-                    pkgs.isort
-                  ];
-                  pathsToLink = [ "/bin" ];
-                })
                 pythonDev
               ];
               inputsFrom = [

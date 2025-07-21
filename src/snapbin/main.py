@@ -60,8 +60,7 @@ def after_request(response: Response) -> Response:
 
 
 def encrypt(password: str) -> tuple[bytes, bytes]:
-    """
-    Take a password string, encrypt it with Fernet symmetric encryption,
+    """Take a password string, encrypt it with Fernet symmetric encryption,
     and return the result (bytes), with the decryption key (bytes)
     """
     encryption_key = Fernet.generate_key()
@@ -71,8 +70,7 @@ def encrypt(password: str) -> tuple[bytes, bytes]:
 
 
 def decrypt(password: bytes, decryption_key: bytes) -> bytes:
-    """
-    Decrypt a password (bytes) using the provided key (bytes),
+    """Decrypt a password (bytes) using the provided key (bytes),
     and return the plain-text password (bytes).
     """
     fernet = Fernet(decryption_key)
@@ -92,8 +90,7 @@ def parse_token(token: str) -> tuple[str, bytes | None]:
 
 
 def set_password(password: str, ttl: int) -> str:
-    """
-    Encrypt and store the password for the specified lifetime.
+    """Encrypt and store the password for the specified lifetime.
 
     Returns a token comprised of the key where the encrypted password
     is stored, and the decryption key.
@@ -107,8 +104,7 @@ def set_password(password: str, ttl: int) -> str:
 
 
 def get_password(token: str) -> str | None:
-    """
-    From a given token, return the initial password.
+    """From a given token, return the initial password.
 
     If the token is tilde-separated, we decrypt the password fetched from Redis.
     If not, the password is simply returned as is.
@@ -157,8 +153,7 @@ def _clean_ttl(ttl_request: Request) -> int:
 
 
 def clean_input(form_request: Request = request) -> tuple[int, str]:
-    """
-    Make sure we're not getting bad data from the front end,
+    """Make sure we're not getting bad data from the front end,
     format data to be machine readable
     """
     if empty(form_request.form.get("password", "")):

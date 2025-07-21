@@ -10,5 +10,5 @@ def strtobool(val: str) -> bool:
     if val in ("n", "no", "f", "false", "off", "0"):
         return False
     raise ValueError(
-        "invalid truth value %r" % (val,)  # pylint: disable=consider-using-f-string
+        "invalid truth value %r" % (val,),  # pylint: disable=consider-using-f-string
     )
